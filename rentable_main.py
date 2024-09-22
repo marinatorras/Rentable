@@ -1,7 +1,10 @@
 import xml.etree.ElementTree as ET
 from dynamo import init_dynamodb
-from dynamo import create_table
+from dynamo import create_properties_table
 from dynamo import save_to_dynamodb
+from dynamo import create_statistics_table
+from weather_scheduler import start_scheduler
+
 
 def parse_property_feed(xml_file):
     # Parse the XML file
@@ -9,13 +12,12 @@ def parse_property_feed(xml_file):
     root = tree.getroot()
 
     properties = []
-    print(root)
 
     # Iterate through each Property element
     for property_elem in root.findall('./Property'):
         prop = property_elem.find('./PropertyID')
 
-        # Get Id, name, email and address
+        # Get Id, name, email, and address
         if prop is not None:
             property_id = prop.find('./Identification').attrib.get('IDValue', '')
             name = prop.find('./MarketingName').text if prop.find('./MarketingName') is not None else ''
@@ -54,8 +56,11 @@ def main():
 
 
     db = init_dynamodb()
-    table = create_table(db)
+    table = create_properties_table(db)
     save_to_dynamodb(table, properties)
+    
+    create_statistics_table(db)
+    start_scheduler(db)
 
 if __name__ == '__main__':
     main()

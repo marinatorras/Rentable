@@ -13,15 +13,15 @@ def init_dynamodb():
     )
     return dynamodb
 
-# Create a DynamoDB table (if not exists)
-def create_table(dynamodb):
+# Create a DynamoDB table for the property properties
+def create_properties_table(dynamodb):
     table_name = 'Properties'
     
     existing_tables = dynamodb.tables.all()
     if any(table.name == table_name for table in existing_tables):
         return dynamodb.Table(table_name)
     
-    table = dynamodb.create_table(
+    table = dynamodb.create_properties_table(
         TableName=table_name,
         KeySchema=[
             {
@@ -43,6 +43,40 @@ def create_table(dynamodb):
     
     table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
     return table
+
+
+# Create a DynamoDB table for the stats of the fetching the weather job
+def create_statistics_table(dynamodb):
+    table_name = 'RunStatistics'
+
+    existing_tables = [table.name for table in dynamodb.tables.all()]
+    if table_name in existing_tables:
+        return dynamodb.Table(table_name)
+
+    # Create table for statistics
+    table = dynamodb.create_table(
+        TableName=table_name,
+        KeySchema=[
+            {
+                'AttributeName': 'run_id',
+                'KeyType': 'HASH'  # Partition key
+            }
+        ],
+        AttributeDefinitions=[
+            {
+                'AttributeName': 'run_id',
+                'AttributeType': 'S'
+            }
+        ],
+        ProvisionedThroughput={
+            'ReadCapacityUnits': 5,
+            'WriteCapacityUnits': 5
+        }
+    )
+
+    table.meta.client.get_waiter('table_exists').wait(TableName=table_name)
+    return table
+
 
 # Save data into the DynamoDB table
 def save_to_dynamodb(table, properties):
