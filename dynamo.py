@@ -21,7 +21,7 @@ def create_properties_table(dynamodb):
     if any(table.name == table_name for table in existing_tables):
         return dynamodb.Table(table_name)
     
-    table = dynamodb.create_properties_table(
+    table = dynamodb.create_table(
         TableName=table_name,
         KeySchema=[
             {
@@ -90,4 +90,18 @@ def save_to_dynamodb(table, properties):
             }
         )
     print(f"Saved {len(properties)} items to DynamoDB.")
+
+
+def delete_table(dynamodb, table_name):
+    try:
+        table = dynamodb.Table(table_name)
+        table.delete()
+        table.wait_until_not_exists()
+        print(f"Table {table_name} deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting table {table_name}: {e}")
+
+def reset_tables(dynamodb):
+    delete_table(dynamodb, 'Properties')
+    delete_table(dynamodb, 'RunStatistics')
 

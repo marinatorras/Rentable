@@ -3,6 +3,7 @@ from dynamo import init_dynamodb
 from dynamo import create_properties_table
 from dynamo import save_to_dynamodb
 from dynamo import create_statistics_table
+from dynamo import reset_tables
 from weather_scheduler import start_scheduler
 
 
